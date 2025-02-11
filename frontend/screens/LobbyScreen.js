@@ -1,12 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, TextInput, StyleSheet, Button, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import Animated, { useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    withRepeat, } from 'react-native-reanimated';
+
+import { io } from "socket.io-client";
+
+const socket = io("http://10.0.0.137:5000"); // Replace with your backend IP if different
+
 
 
 const LobbyScreen = ({ route }) => {
     console.log(route.params);
-    const { matchCode, matchName, hostName, hostId, par, players, createdAt } = route.params;
+    const { matchCode, matchName, hostName, playerName, hostId, par, players: initialPlayers, createdAt } = route.params;
+    const [showButton, setShowButton] = useState(false);
+    const [players, setPlayers] = useState(initialPlayers);
+
+
+    useEffect(() => {
+        // Join the match room via WebSocket
+        socket.emit("joinMatch", { matchCode });
+
+        // Listen for lobby updates from the backend
+        socket.on("updateLobby", (updatedMatch) => {
+            setPlayers(updatedMatch.players); // Update players list dynamically
+        });
+
+        if (playerName === hostName){
+            setShowButton(true);
+        }
+    
+
+        return () => {
+            // Cleanup socket listener when component unmounts
+            socket.off("updateLobby");
+        };
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -22,17 +53,18 @@ const LobbyScreen = ({ route }) => {
                 data={players}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
-                    <Text style={styles.playerText}>
-                        {item.playerName}
-                    </Text>
+                    <Text style={styles.playerText}>{item.playerName}</Text>
                 )}
             />
 
+        {showButton && (
             <Button style={styles.button} title="Start Match" />
+        )}
             <Button style={styles.button} title="Cancel" />
         </View>
     );
 };
+
 
 
 const styles = StyleSheet.create({

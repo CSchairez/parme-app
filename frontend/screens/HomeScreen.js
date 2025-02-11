@@ -29,12 +29,26 @@ const HomeScreen = () => {
     const [playerName, setPlayerName] = useState('');
     const [matchCode, setMatchCode] = useState('');
 
+    const handleCancelCreate = () => {
+        setMatchName(""); // Clear input
+        setHostName("");
+        setCourse("");
+        setPar("");
+        setModalCreateVisible(false); // Close modal
+    };
+
+    const handleCancelJoin = () => {
+        setMatchCode("");
+        setPlayerName("");
+        setModalJoinVisible(false);
+    }
     const handleCreateMatch = async () => {
         if (!matchName || !hostName || !par) {
             return;
         }
 
         try {
+            console.log("From homescreen trying create-match");
             const response = await fetch('http://10.0.0.137:5000/api/create-match', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -42,13 +56,14 @@ const HomeScreen = () => {
             });
             const data = await response.json();
             console.log("JSON Create-response: ", data);
-
+            console.log("Host Player:", data.playerName);
             if (response.ok) {
                 setModalCreateVisible(false);
                 navigation.navigate("Lobby", { 
                     matchCode: data.matchCode, 
                     matchName: data.matchName, 
                     hostName: data.hostName,
+                    playerName: data.playerName,
                     hostId: data.hostId,
                     course: data.course, 
                     par: data.par, 
@@ -78,13 +93,15 @@ const HomeScreen = () => {
             })
             const data = await response.json();
             console.log("JSON Join-response: ", data);
+            console.log("Player Joining:", data.playerName);
 
             if(response.ok){
                 setModalJoinVisible(false);
                 navigation.navigate("Lobby", { 
                     matchCode: data.matchCode, 
                     matchName: data.matchName, 
-                    hostName: data.hostName, 
+                    hostName: data.hostName,
+                    playerName: data.playerName, 
                     hostId: data.hostId,
                     course: data.course, 
                     par: data.par, 
@@ -145,7 +162,7 @@ const HomeScreen = () => {
                             <TouchableOpacity style={styles.button} onPress={handleCreateMatch}>
                                 <Text style={styles.buttonText}>Create</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.button} onPress={() => setModalCreateVisible(false)}>
+                            <TouchableOpacity style={styles.button} onPress={handleCancelCreate}>
                                 <Text style={styles.buttonText}>Cancel</Text>
                             </TouchableOpacity>
 
@@ -175,7 +192,7 @@ const HomeScreen = () => {
                             <TouchableOpacity style={styles.button} onPress={handleJoinMatch}>
                                 <Text style={styles.buttonText}>Join</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.button} onPress={() => setModalJoinVisible(false)}>
+                            <TouchableOpacity style={styles.button} onPress={handleCancelJoin}>
                                 <Text style={styles.buttonText}>Cancel</Text>
                             </TouchableOpacity>
 
