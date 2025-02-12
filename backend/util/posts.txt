@@ -1,0 +1,10 @@
+/// Join-Match
+curl -X POST "http://10.0.0.137:5000/api/join-match"      -H "Content-Type: application/json"      -d '{
+          "matchCode": "3E4E65",
+          "playerName": "Mario"
+     }'
+
+
+/// Create-Match
+curl -X POST http://10.0.0.137:5000/api/create-match      -
+H "Content-Type: application/json"      -d '{"hostName": "Michael", "matchName": "Match 1", "course": "SJ Muni", "par": 72}'

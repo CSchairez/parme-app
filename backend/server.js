@@ -11,19 +11,20 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*", //Adjust this to your frontend url if needed
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "DELETE"]
   }
 });
 
 const createMatchRoute = require('./routes/createMatchRoute');
-const routes = require('./routes/routes')(io);
+const joinMatchRoute = require('./routes/joinMatchRoute')(io);
 const getMatchesRoute = require('./routes/getMatchesRoute');
+const deletePlayerRoute = require('./routes/deletePlayerRoute')(io);
 
 
-
-app.use("/api", routes);
+app.use("/api", joinMatchRoute);
 app.use("/api", createMatchRoute);
 app.use("/api", getMatchesRoute);
+app.use("/api", deletePlayerRoute);
 
 // WebSocket events
 io.on("connection", (socket) => {

@@ -17,7 +17,7 @@ const LobbyScreen = ({ route }) => {
     const { matchCode, matchName, hostName, playerName, hostId, par, players: initialPlayers, createdAt } = route.params;
     const [showButton, setShowButton] = useState(false);
     const [players, setPlayers] = useState(initialPlayers);
-
+    const navigation = useNavigation();
 
     useEffect(() => {
         // Join the match room via WebSocket
@@ -38,6 +38,27 @@ const LobbyScreen = ({ route }) => {
             socket.off("updateLobby");
         };
     }, []);
+
+    const handlePlayerCancel = async () => {
+        try {
+            const response = await fetch('http://10.0.0.137:5000/api/delete-player', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ matchCode, playerName }),
+            })
+            const data = await response.json();
+            console.log("JSON Join-response: ", data);
+            console.log("Player Joining:", data.playerName);
+
+            if(response.ok){
+                navigation.navigate("Home");
+            } else {
+                console.error("Error Joining Match");
+                }
+        } catch (error) {
+            console.error("Network Error creating match", error);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -60,7 +81,7 @@ const LobbyScreen = ({ route }) => {
         {showButton && (
             <Button style={styles.button} title="Start Match" />
         )}
-            <Button style={styles.button} title="Cancel" />
+            <Button style={styles.button} title="Cancel" onPress={handlePlayerCancel} />
         </View>
     );
 };
