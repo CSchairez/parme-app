@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, TextInput, StyleSheet, Button, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, TextInput, StyleSheet, Button, FlatList, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Animated, { useSharedValue,
     useAnimatedStyle,
@@ -10,22 +10,39 @@ import { io } from "socket.io-client";
 
 const socket = io("http://10.0.0.137:5000"); // Replace with your backend IP if different
 
-
+const { width } = Dimensions.get('window'); // Get screen width
 
 const LobbyScreen = ({ route }) => {
+
+    const offset = useSharedValue(width / 2);
     console.log(route.params);
     const { matchCode, matchName, hostName, playerName, hostId, par, players: initialPlayers, createdAt } = route.params;
     const [showButton, setShowButton] = useState(false);
     const [players, setPlayers] = useState(initialPlayers);
     const navigation = useNavigation();
 
+    const animatedStyles = useAnimatedStyle(() => ({
+        transform: [{ translateX: offset.value }],
+      }));
+
     useEffect(() => {
+        offset.value = withRepeat(
+            withTiming(-offset.value, { duration: 1050 }),
+            -1,
+            true
+          );
         // Join the match room via WebSocket
         socket.emit("joinMatch", { matchCode });
 
         // Listen for lobby updates from the backend
         socket.on("updateLobby", (updatedMatch) => {
             setPlayers(updatedMatch.players); // Update players list dynamically
+        });
+
+        // Handle match cancelled event
+        socket.on("matchCancelled", () => {
+            alert("The host has cancelled the match. Returning to Home.");
+            navigation.navigate("Home");
         });
 
         if (playerName === hostName){
@@ -36,6 +53,7 @@ const LobbyScreen = ({ route }) => {
         return () => {
             // Cleanup socket listener when component unmounts
             socket.off("updateLobby");
+            socket.off("matchCancelled");
         };
     }, []);
 
@@ -77,6 +95,8 @@ const LobbyScreen = ({ route }) => {
                     <Text style={styles.playerText}>{item.playerName}</Text>
                 )}
             />
+            {/* Animated Background Effect */}
+      <Animated.View style={[styles.box, animatedStyles]} />
 
         {showButton && (
             <Button style={styles.button} title="Start Match" />
@@ -95,6 +115,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    box: {
+        height: 60,
+        width: 60,
+        backgroundColor: '#b58df1',
+        borderRadius: 20,
+        position: 'absolute', // Ensure it doesn't interfere with other UI elements
+        top: '60%', // Adjust placement as needed
+      },
     title: { 
         fontSize: 24, 
         fontWeight: 'bold' 

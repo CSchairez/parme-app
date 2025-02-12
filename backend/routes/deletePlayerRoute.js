@@ -16,7 +16,7 @@ module.exports = (io) => {
 
         if (match.host.hostName === playerName) {
             matches.splice(match, 1);
-            io.to(matchCode).emit("matchDeleted", { message: "Match has been closed by the host" });
+            io.to(matchCode).emit("matchCancelled");
             return res.status(200).json({ message: "Match deleted successfully!" });
         }
     
