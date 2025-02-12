@@ -9,9 +9,15 @@ module.exports = (io) => {
 
         const { matchCode, playerName } = req.body;
         const match = matches.find((match) => match.matchCode === matchCode);
-        
+
         if (!match) {
             return res.status(400).json({ message: "Match not found!" });
+        }
+
+        if (match.host.hostName === playerName) {
+            matches.splice(match, 1);
+            io.to(matchCode).emit("matchDeleted", { message: "Match has been closed by the host" });
+            return res.status(200).json({ message: "Match deleted successfully!" });
         }
     
         // Find player index
