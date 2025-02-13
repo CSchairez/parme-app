@@ -11,7 +11,7 @@ module.exports = (io) => {
             if (match.players.find((player) => player.playerName === playerName)) {
                 return res.status(400).json({ message: "This name is taken!" });
             }
-            match.players.push({playerName});
+            match.players.push({playerName, score: 0});
 
               // Emit an event to all players in this match room
             io.to(matchCode).emit("updateLobby", match);

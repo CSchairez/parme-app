@@ -7,6 +7,7 @@ import Animated, { useSharedValue,
     withRepeat, } from 'react-native-reanimated';
 
 import { io } from "socket.io-client";
+import { navigate } from '../utils/NavigationService';
 
 const socket = io("http://10.0.0.137:5000"); // Replace with your backend IP if different
 
@@ -31,6 +32,14 @@ const LobbyScreen = ({ route }) => {
             -1,
             true
           );
+        const unsubscribe = navigation.addListener('state', () => {
+            socket.on("navigateToScorecard", ({ matchCode }) => {
+            navigate("ScoreCard", { matchCode });
+            });
+        });
+        if (playerName === hostName){
+            setShowButton(true);
+        }
         // Join the match room via WebSocket
         socket.emit("joinMatch", { matchCode });
 
@@ -41,21 +50,23 @@ const LobbyScreen = ({ route }) => {
 
         // Handle match cancelled event
         socket.on("matchCancelled", () => {
-            alert("The host has cancelled the match. Returning to Home.");
+            alert(`Host ${hostName} has cancelled the match.`);
             navigation.navigate("Home");
         });
 
-        if (playerName === hostName){
-            setShowButton(true);
-        }
-    
 
         return () => {
             // Cleanup socket listener when component unmounts
             socket.off("updateLobby");
             socket.off("matchCancelled");
+            unsubscribe();
+            socket.off("navigateToScorecard");
         };
-    }, []);
+    }, [navigation]);
+
+    const handleStartMatch = () => {
+        socket.emit("startMatch", { matchCode });
+    };
 
     const handlePlayerCancel = async () => {
         try {
@@ -99,7 +110,7 @@ const LobbyScreen = ({ route }) => {
       <Animated.View style={[styles.box, animatedStyles]} />
 
         {showButton && (
-            <Button style={styles.button} title="Start Match" />
+            <Button style={styles.button} title="Start Match" onPress={handleStartMatch}/>
         )}
             <Button style={styles.button} title="Cancel" onPress={handlePlayerCancel} />
         </View>

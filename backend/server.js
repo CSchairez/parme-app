@@ -35,6 +35,13 @@ io.on("connection", (socket) => {
       console.log(`Socket ${socket.id} joined match ${matchCode}`);
   });
 
+  socket.on("startMatch", ({ matchCode }) => {
+    console.log(`Starting match for code: ${matchCode}`);
+    
+    // Notify all players in the match to navigate to the scorecard
+    io.to(matchCode).emit("navigateToScorecard", { matchCode });
+});
+
   socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
   });

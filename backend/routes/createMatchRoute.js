@@ -36,7 +36,7 @@ router.post('/create-match', (req, res) => {
             matchName,
             par,
             course,
-            players: [{ playerName: hostName}],
+            players: [{ playerName: hostName, score: 0}],
             matchState: "waiting for players to join...", // Initial state 
             createdAt: new Date().toISOString()
         };
